@@ -1,97 +1,80 @@
-import { fetchPlaceholders,getMetadata } from '../../scripts/aem.js';
-const placeholders = await fetchPlaceholders(getMetadata("locale"));
-
-const { allCountries,abbreviation,africa,america,asia,australia,capital,continent,countries,europe,sNo} = placeholders;
-
-
-async function createTableHeader(table){
-    let tr=document.createElement("tr");
-    let sno=document.createElement("th");sno.appendChild(document.createTextNode(sNo));
-    let conuntry=document.createElement("th");conuntry.appendChild(document.createTextNode(countries));
-    let continenth=document.createElement("th");continenth.appendChild(document.createTextNode(continent));
-    let capitalh=document.createElement("th");capitalh.appendChild(document.createTextNode(capital));
-    let abbr=document.createElement("th");abbr.appendChild(document.createTextNode(abbreviation));
-    tr.append(sno);tr.append(conuntry);tr.append(capitalh);tr.append(continenth);tr.append(abbr);
-    table.append(tr);
-}
-async function createTableRow(table,row,i){
-    let tr=document.createElement("tr");
-    let sno=document.createElement("td");sno.appendChild(document.createTextNode(i));
-    let conuntry=document.createElement("td");conuntry.appendChild(document.createTextNode(row.Country));
-    let continent=document.createElement("td");continent.appendChild(document.createTextNode(row.Capital));
-    let capital=document.createElement("td");capital.appendChild(document.createTextNode(row.Continent));
-    let abbr=document.createElement("td");abbr.appendChild(document.createTextNode(row.Abbreviation));
-    tr.append(sno);tr.append(conuntry);tr.append(continent);tr.append(capital);tr.append(abbr);
-    table.append(tr);
-}
-
-async function createSelectMap(jsonURL){
-    const optionsMap=new Map();
-    const { pathname } = new URL(jsonURL);
-
-    const resp = await fetch(pathname);
-    optionsMap.set("all",allCountries);optionsMap.set("asia",asia);optionsMap.set("europe",europe);optionsMap.set("africa",africa);optionsMap.set("america",america);optionsMap.set("australia",australia);
-    const select=document.createElement('select');
-    select.id = "region";
-    select.name="region";
-    optionsMap.forEach((val,key) => {
-        const option = document.createElement('option');
-        option.textContent = val;
-        option.value = key;
-        select.append(option);
-      });
-     
-     const div=document.createElement('div'); 
-     div.classList.add("region-select");
-     div.append(select);
-    return div;
-}
-async function createTable(jsonURL,val) {
-
-    let  pathname = null;
-    if(val){
-        pathname=jsonURL;
-    }else{
-        pathname= new URL(jsonURL);
-    }
-    
-    const resp = await fetch(pathname);
-    const json = await resp.json();
-    console.log("=====JSON=====> {} ",json);
-    
-    const table = document.createElement('table');
-    createTableHeader(table);
-    json.data.forEach((row,i) => {
-
-        createTableRow(table,row,(i+1));
-
-      
-    });
-    
-    return table;
-}    
-
 export default async function decorate(block) {
-    const countries = block.querySelector('a[href$=".json"]');
-    const parientDiv=document.createElement('div');
-    parientDiv.classList.add('contries-block');
+  // Clear existing content
+  block.innerHTML = '';
 
-    if (countries) {
-        parientDiv.append(await createSelectMap(countries.href));
-        parientDiv.append(await createTable(countries.href,null));
-        countries.replaceWith(parientDiv);
-        
-    }
-    const dropdown=document.getElementById('region');
-      dropdown.addEventListener('change', () => {
-        let url=countries.href;
-        if(dropdown.value!='all'){
-            url=countries.href+"?sheet="+dropdown.value;
-        }
-        const tableE=parientDiv.querySelector(":scope > table");
-        let promise = Promise.resolve(createTable(url,dropdown.value));
-        promise.then(function (val) {
-            tableE.replaceWith(val);
-        });
-      });
+  // Fetch JSON data from the Google Drive URL
+  const url = 'https://main--aem-eds-practice--gowrishangari.hlx.page/countries.jsonhttps://main--aem-eds-practice--gowrishangari.hlx.page/countries.json'; // Replace with your Google Drive file ID
+  let jsonData;
+  try {
+    const response = await fetch(url);
+    jsonData = await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return;
   }
+
+  // Create a table element
+  const table = document.createElement('table');
+  table.className = 'custom-table'; // Add a class for CSS styling
+
+  // Create table header
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+
+  // Assuming jsonData is an array of objects
+  if (jsonData.length > 0) {
+    const headers = Object.keys(jsonData[0]); // Use keys of the first object as headers
+    headers.forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create table body
+    const tbody = document.createElement('tbody');
+
+    jsonData.forEach(item => {
+      const row = document.createElement('tr');
+      headers.forEach(header => {
+        const td = document.createElement('td');
+        td.textContent = item[header];
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    });
+
+    table.appendChild(tbody);
+  } else {
+    console.error('No data available');
+  }
+
+  // Append the table to the block
+  block.appendChild(table);
+}
+
+// Add CSS for the table (add this to your CSS file or inside a <style> tag)
+const style = document.createElement('style');
+style.textContent = `
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .custom-table th, .custom-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  .custom-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+  }
+  .custom-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  .custom-table tr:hover {
+    background-color: #ddd;
+  }
+`;
+document.head.appendChild(style);
