@@ -25,5 +25,28 @@
     "eslint-plugin-import": "2.29.1",
     "stylelint": "16.7.0",
     "stylelint-config-standard": "36.0.1"
+  },
+  "name": "aem-sites-with-edge-delivery-services-template",
+  "version": "0.0.16",
+  "description": "AEM Site with Edge Delivery Services Template used as a starter for general purpose websites with Edge Delivery Services delivery",
+  "license": "MIT License, Copyright 2020 Adobe Systems Incorporated",
+  "scripts": {
+      "build": "aem-site-template-builder",
+      "stub": "aem-site-template-builder stub"
+  },
+  "devDependencies": {
+      "@adobe/aem-site-template-builder": "2.3.2"
+  },
+  "siteTemplate": {
+      "title": "AEM Site with Edge Delivery Services Template",
+      "createdBy": "Adobe",
+      "useCases": [
+          "AEM Sites delivered with Edge Delivery Services",
+          "Edge Delivery Services"
+      ],
+      "docsUrl": "",
+      "showcaseUrl": "",
+      "sourceRepositoryUrl": "https://git.corp.adobe.com/CQ/sites-franklin",
+      "openItem": "{Path}/index"
   }
 }
